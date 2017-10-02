@@ -1,0 +1,240 @@
+---
+title: "Oficina: <br> _webscraping_ e conexões"
+author: 
+- Fernando Corrêa
+- Curso-R
+date: 13 de Junho, 2017
+output: 
+  revealjs::revealjs_presentation:
+    theme: white
+    highlight: pygments
+    center: true
+    transition: fade
+    fig_width: 10
+    fig_height: 7.2
+    fig_caption: false
+    fig_retina: 1.31
+    css: style.css
+---
+
+```{r setup, include = FALSE}
+
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, comment = FALSE, error = FALSE, message = FALSE)
+
+require(DiagrammeR)
+
+```
+
+## Sobre a Curso-R
+
+- Premissas:
+    - `big data` e `analytics` são as _buzzwords_ do momento.
+    - Gostamos de trabalhar juntos.
+    - Somos proficientes em R.
+- Surgimento da empresa:
+    - Motivação: contribuir com a comunidade.
+    - http://curso-r.com/blog
+
+## Por que aprender R?  
+
+```{r}
+knitr::include_graphics(path = 'bigdata.png')
+```
+
+## Por que aprender R?
+
+R \(\iff\) Estatística
+
+
+```{r}
+grViz("
+digraph boxes_and_circles {
+
+  # a 'graph' statement
+  graph [overlap = true, fontsize = 10]
+
+  # several 'node' statements
+  node [shape = box,
+        fontname = Helvetica]
+  'Tentative Analysis'; 'Tentative Model';
+
+  'Tentative Model' -> 'Tentative Analysis'
+  'Tentative Analysis' -> 'Tentative Model'
+}
+", height = 300)
+```
+
+Ciclo da análise de dados segundo George Box
+
+## Por que aprender R?
+
+R \(\iff\) Estatística
+
+```{r, echo=FALSE}
+knitr::include_graphics("https://raw.githubusercontent.com/hadley/r4ds/master/diagrams/data-science.png")
+```
+Ciclo da ciência de dados segundo Hadley Wickham
+
+## Outline
+
+1. Fundamentos
+2. Exemplos:
+    1. Dados de criminalidade
+    2. Informações sobre filmes
+    3. (talvez) SABESP
+
+## _web scraping_
+
+- Forma especial de `import`
+- Propriedades:
+    - Sistemático
+    - Sem intervenção humana
+- Propósitos:
+    - Monitorar informações
+    - Montar bases de dados
+    
+## _web scraping_
+
+- Exigências:
+    - Muita análise de texto
+    - Conhecimento sobre `html`
+    - Conhecimento sobre o `http`
+
+## Protocolo `http` 
+```{r}
+grViz("
+digraph boxes_and_circles {
+
+  # a 'graph' statement
+  graph [overlap = true, fontsize = 10, rankdir = LR]
+
+  # several 'node' statements
+  node [shape = box,
+        fontname = Helvetica]
+  Usuário; Servidor;
+
+  node [shape = circle]
+  'TCP/IP' [style = 'dashed']; Javascript[style = 'dashed']
+
+  Usuário -> Requisição [arrowhead = 'none', color = 'green']
+  Requisição -> 'TCP/IP' [arrowhead = 'none', color = 'green']
+  'TCP/IP' -> Servidor [color = 'green']
+  Servidor -> Resposta [color = 'red', arrowhead = 'none']
+  Resposta -> 'TCP/IP' [color = 'red', arrowhead = 'none']
+  'TCP/IP' -> Javascript [arrowhead = 'none', color = 'red']
+  Javascript -> Usuário [color = 'red']
+}
+", height = 300)
+```
+
+## Requisições do usuário
+
+```{html, echo = TRUE, eval = FALSE}
+[metodo] [caminho do arquivo] HTTP/[versão]
+[campo1]: [valor] 
+[campo2]: [valor]
+ 
+[corpo da requisição]
+```
+
+## Resposta do servidor
+
+```{html, echo = TRUE, eval = FALSE}
+HTTP/[versão] [código do status]
+[campo1]: [valor] 
+[campo2]: [valor]
+
+[conteúdo]
+```
+
+## Formatos comuns
+
+- Requisições do usuário:
+    - `GET`, que não tem corpo. Só recebe uma página.
+    - `POST`, `PUT`, têm corpo. Recebe uma página em função de parâmetros.
+    - Formulários
+- Repostas:
+    - Código do status: 404 é erro, 200 é sucesso, etc...
+    
+## No R
+
+- `cURL` é um software em `C` pra programar `http` em linhas de código
+- Em R, `cURL` recebeu um port feito pelo Jeroen Ooms, criado em 2014.
+- O Hadley Wickham fez uma API mais agradável no pacote `httr`
+
+## Os 4 passos do _web scraping_
+
+1. Defina as páginas que você quer raspar.
+2. Identifique _exatamente_ as requisições que produzem o que você quer.
+3. Construa um programa que _imite_ as requisições que você faria manualmente.
+4. Repita o passo 3. quantas vezes quiser.
+
+## Primeiro exemplo: SSP/SP
+
+- Defina o que você quer coletar:
+    - Origem: http://www.ssp.sp.gov.br/Estatistica/Pesquisa.aspx
+    - Destinos: Variações de parâmetros
+    
+## SSP/SP
+
+- O que exatamente acontece?
+    - `POST` parametrizado
+  
+## SSP/SP
+
+##  exemplo: `rotten tomatoes`
+
+- O que eu quero coletar?
+    - Informações sobre celebridades
+    - Informações sobre seus filmes
+    - Avaliações sobre seus filmes
+- Páginas:
+    - Origem: https://www.rottentomatoes.com/
+    - Destinos: e.g. https://www.rottentomatoes.com/celebrity/tom_hanks
+
+## 
+
+```{r, fig.height=5}
+library(ggplot2)
+
+readRDS("filmes_do_nicolas_cage.rds") %>% 
+ggplot(aes(x = YEAR, y = RATING, colour = RATING)) +
+  geom_point(size = 3) +
+  geom_smooth(alpha = 0, color = 'black', linetype = 2) +
+  theme_minimal(17) +
+  scale_color_continuous(low = 'red', high = 'green', name = "Rating") +
+  scale_y_continuous(limits = c(0,100)) +
+  ggtitle("Avaliação dos filmes do Nicolas Cage") +
+  labs(y = "Rating", x = "Ano")
+```
+
+
+## `rotten tomatoes`
+
+- Descrevendo exatamente a comunicação:
+    - Busca é feita na forma https://www.rottentomatoes.com/?seach=SUA+BUSCA
+    - Como se forma o conteúdo da página?
+    
+## `rotten tomatoes`
+
+```{html, echo = TRUE}
+<div id="main_container" class="container ">
+            <div class="col col-left-center col-full-xs">
+            <div id="search-results-root"></div>
+                    <script>
+                        ...
+                        {"actorCount":11,
+                        "actors":[{
+                          "name":"John Hughes",
+                          "url":"/celebrity/1007319-john_hughes",
+                          "image":".."}
+                    </script>
+            </div>
+</div>
+```
+
+## `rotten tomatoes`
+
+- Como restringir a tabela final?
+
+

@@ -1,0 +1,19 @@
+.reveal section img {
+  background:none;
+  border:none;
+  box-shadow:none;
+  }
+
+/*body:after {
+  content: url(logo_colado.png);
+  position: fixed;
+  bottom: 3.5em;
+  left: 3.5em;
+}*/
+
+body {
+  background-image: url(logo.svg);
+  background-repeat: no-repeat;
+  background-position: top right;
+  background-size: 10%;
+}
