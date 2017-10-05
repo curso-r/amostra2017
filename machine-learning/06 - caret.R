@@ -13,7 +13,6 @@ indices <- sample.int(nrow(Glass), size = 0.8*nrow(Glass))
 treino <- Glass[indices,]
 teste <- Glass[-indices,]
 
-
 # treinar um modelo
 model <- train(Type ~ ., data = treino)
 model
