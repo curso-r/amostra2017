@@ -14,11 +14,10 @@ dispersao_escolaridade_x_renda <- censo %>%
   filter(base == "treino") %>%
   ggplot(aes(x = escolaridade, y = renda)) +
   geom_point(size = 3) +
-  coord_cartesian(xlim = c(3, 9),
-                  ylim = c(-10, 1900)) +
-  scale_color_manual(values = c("#F8766D", "#00BA38", "#619CFF"))
+  scale_color_manual(values = c("#F8766D", "#00BA38", "#619CFF")) +
+  theme_gray(14)
 
-dispersao_escolaridade_x_renda
+dispersao_escolaridade_x_renda +  geom_smooth(aes(color = "b. quadratico"), method = "lm", formula = y ~ poly(x, 2), se = FALSE, fullrange = TRUE)
 
 # adiciona modelo linear
 p1 <- dispersao_escolaridade_x_renda + geom_smooth(aes(color = "a. linear"), method = "lm", formula = y ~ x, se = FALSE, fullrange = TRUE)
