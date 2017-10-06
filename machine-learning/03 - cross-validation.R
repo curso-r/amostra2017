@@ -9,7 +9,10 @@ y_novo <- 3*x + rnorm(10)
 
 data.frame(x = x, y = y) %>%
   ggplot(aes(x = x, y = y)) +
-  geom_point()
+  geom_point() +
+  geom_smooth(method = "lm", formula = y ~ poly(x, 2), color = "royal blue", se = FALSE) +
+  geom_smooth(method = "lm", formula = y ~ x, color = "red", se = FALSE) +
+  geom_smooth(data = data.frame(x = x, y = y) %>% filter(y != max(y)), method = "lm", formula = y ~ x, color = "orange", se = FALSE)
 
 
 erros <- data.frame(polinomio = 1:9, erro_teste = numeric(9), erro_treino = numeric(9))
